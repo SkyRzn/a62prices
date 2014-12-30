@@ -61,8 +61,6 @@ for itkey, item in items.items():
 	for date in dates:
 		if itkey in res[date]:
 			name, price, presence = res[date][itkey]
-			if 'остромск' in name.encode('UTF8'):
-				print '!!!!!!!!!!!!', name, itkey
 			if presence:
 				item[1].append(price)
 				item[2].append(presence)
