@@ -1,76 +1,81 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 
 
 import requests, re, json, time, os
+from lxml import html
 
 
-def parse_table(table):
-	res = {}
-	trs = re.findall('<tr>.*?</tr>', table)
-	for tr in trs:
+	#res = {}
+	#trs = re.findall('<tr>.*?</tr>', table)
+	#for tr in trs:
+		#try:
+			#art = int(re.findall('\(.*?\:([0-9]*)\)', tr)[0])
+			#name = re.findall('<a.*?>(.*?)</a>', tr)[0].strip()
+			#price = re.findall('<nobr>(.*?)</nobr>', tr)[0].strip()
+			#price = float(price.split(' ')[0])
+			#presence = re.findall('<div style=\'color:(.*?);', tr)[0].strip() == 'green'
+		#except:
+			#print 'String parsing error!'
+			#return None
+		#res[art] = (name, price, presence)
+	#return res
+
+
+def parse_page(url, res):
+	print '.'
+	try:
+		page = html.parse(url)
+		page = page.getroot()
+	except:
+		print 'Parsing error!'
+		return
+
+	products = page.find_class('product-grid')[0].findall('div')
+	
+	products = filter(lambda x: not x.keys(), products)
+	
+	for product in products:
+		name =  product.find_class('name')[0].find('a').text
+		#print name
+		art = product.find_class('art')[0].text
+		art = int(re.search('[0-9]+', art).group())
+		#print art
+		
+		price = product.find_class('price-new')
+		action = bool(price)
+		if price:
+			price = price[0]
+		else:
+			price = product.find_class('price')[0]
+			
 		try:
-			art = int(re.findall('\(.*?\:([0-9]*)\)', tr)[0])
-			name = re.findall('<a.*?>(.*?)</a>', tr)[0].strip()
-			price = re.findall('<nobr>(.*?)</nobr>', tr)[0].strip()
-			price = float(price.split(' ')[0])
-			presence = re.findall('<div style=\'color:(.*?);', tr)[0].strip() == 'green'
+			price = float(price.text.strip().replace(' ', ''))
 		except:
-			print 'String parsing error!'
-			return None
-		res[art] = (name, price, presence)
-	return res
+			print 'Price error! (%s)', price.text
+			return
+
+		presence = bool(product.find_class('quantity yes'))
+		
+		res[art] = (name, price, presence, action)
+		
+	
+	links = page.find_class('links')[0]
+	pageLinks = links.findall('a')
+	for pl in pageLinks:
+		if pl.text == '>':
+			parse_page(pl.values()[0], res)
+			return		
 
 def get_prices(name, path):
 	url = 'http://assorti62.ru/index.php?route=product/category&path=%d&limit=25' % (path)
 
-	r = requests.get(url)
-	if r.status_code != 200:
-		print 'Bad status code!'
-		return None
-	
-	content = r.text.replace('\n', '')
-	
-	try:
-		table = re.findall('<tbody>.*?</table>', content)[0]
-	except:
-		print 'Table finding error!'
-		return None
+	print '%s loading' % (name)
 
-	try:
-		links = re.findall('<div class="links">(.*?)</div>', content)[0]
-		max_page = int(re.findall('<a.*?>(.*?)</a>', links)[-1])
-	except:
-		print 'Max page not found!'
-		return None
-	print 'Downloading table "%s"? %d pages' % (name, max_page)
+	res = {}
+	parse_page(url, res)
 	
-	res = parse_table(table)
-	if not res:
-		print 'Parse error!'
-		return None
-	
-	print '\t1'
-	
-	for page in range(2, max_page + 1):
-		url2 = '%s&page=%d' % (url, page)
-		r = requests.get(url2)
-		if r.status_code != 200:
-			print 'Bad status code on page %d!' % (page)
-			return None
-		
-		content = r.text.replace('\n', '')
-			
-		try:
-			table = re.findall('<tbody>.*?</table>', content)[0]
-		except:
-			print 'Table finding error on page %d!' % (page)
-			return None
-		
-		res.update(parse_table(table))
-		if not res:
-			print 'Parse error on page %d!' % (page)
-			return None
-		print '\t%d' % (page)
+	print '\nok'
 
 	date = time.strftime('%y.%m.%d')
 	
@@ -83,6 +88,8 @@ def get_prices(name, path):
 	text = json.dumps(res)
 	f.write(text)
 	f.close
+	
+	return None
 	
 
 get_prices('meat', 25)

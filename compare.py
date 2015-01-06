@@ -54,17 +54,19 @@ items = {}
 
 for date in dates:
 	for key, val in res[date].items():
-		items[key] = (val[0], [], [], [])
+		items[key] = (val[0], [], [], [], [])
 
 
 for itkey, item in items.items():
 	for date in dates:
 		if itkey in res[date]:
-			name, price, presence = res[date][itkey]
-			if presence:
-				item[1].append(price)
-				item[2].append(presence)
+			vals = res[date][itkey]
+			
+			if vals[2]:
+				item[1].append(vals[1])
+				item[2].append(vals[2])
 				item[3].append(date)
+				item[4].append(vals[3] if len(vals)==4 else False)
 		#else:
 			#item[2].append(False)
 
@@ -78,7 +80,7 @@ appeared = []
 disappeared = []
 prch = []
 for key, val in items.items():
-	name, prices, presences, dates = val
+	name, prices, presences, dates, actions = val
 	if len(prices) > 0:
 		alln += 1
 		if True in presences:
@@ -97,13 +99,6 @@ for key, val in items.items():
 			else:
 				fmt = '%s\t%-50.50s\t%s' if nocolor else '%s\t\033[0;31m%-50.50s\t%s\033[0m'
 
-			#if presences[-1] and not presences[0]:
-				#fmt = '\033[1;32m+\033[0m' + fmt
-			#elif not presences[-1] and presences[0]:
-				#fmt = '\033[1;31m-\033[0m' + fmt
-			#else:
-				#fmt = ' ' + fmt
-
 			prcs = []
 			for i, price in enumerate(prices):
 				if i == 0 or i == len(prices) - 1:
@@ -116,10 +111,10 @@ for key, val in items.items():
 			prch.append((prc, fmt % (key, name, prcs), key))
 
 prch.sort()
+
 for p in prch:
 	prc, s, key = p
 
-	#if int(key) in [8056, 29410, 41050, 27724, 35655, 30160, 21481, 201386]:
 	if prc != 100:
 		print s
 
@@ -138,51 +133,3 @@ def print_presence():
 				print '%s \033[1;32m%-32s\t%s\033[0m' % (key, name, prices[-1])
 			else:
 				print '%s \033[1;31m%-32s\t%s\033[0m' % (key, name, prices[-1])
-
-
-
-
-def lol():
-	print len(arts)
-
-	beg = res[dates[0]]
-	end = res[dates[-1]]
-
-	price_changed = {}
-	disappeared = {}
-	appeared = {}
-
-	for key, val in beg.items():
-		name, price, presence = val
-
-		try:
-			nname, nprice, npresence = end[key]
-		except:
-			disappeared[key] = (name, price)
-			continue
-
-		if nprice != price:
-			price_changed[key] = (name, nprice/price*100)
-		if presence and not npresence:
-			disappeared[key] = (name, price)
-		if npresence and not presence:
-			appeared[key] = (name, price)
-
-	print '\n-------------------- price changed'
-	for key, val in price_changed.items():
-		name, prc = val
-		if nocolor:
-			fmt = '%s\t%-32s\t%s' if prc <= 100 else '%s\t%-32s\t%s'
-		else:
-			fmt = '%s\t\033[1;32m%-32s\t%s\033[0m' if prc <= 100 else '%s\t\033[1;31m%-32s\t%s\033[0m'
-		print fmt % (key, name, prc)
-
-	print '\n-------------------- disappeared'
-	for key, val in disappeared.items():
-		name, price = val
-		print '%s \033[1;31m%-32s\t%s\033[0m' % (key, name, price)
-
-	print '\n-------------------- appeared'
-	for key, val in appeared.items():
-		name, price = val
-		print '%s \033[1;32m%-32s\t%s\033[0m' % (key, name, price)
