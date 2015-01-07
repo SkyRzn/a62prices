@@ -4,6 +4,8 @@
 
 import requests, re, json, time, os, sys
 
+reload(sys)  
+sys.setdefaultencoding('utf8')
 
 nocolor = ('--nocolor' in sys.argv)
 
@@ -103,7 +105,7 @@ for key, val in items.items():
 			for i, price in enumerate(prices):
 				if i == 0 or i == len(prices) - 1:
 					if presences[i]:
-						prcs.append('%.2f (%.2f) (%s)' % (float(price)/prices[0]*100, price, dates[i]))
+						prcs.append('%.2f (%.2f) (%s) (%s)' % (float(price)/prices[0]*100, price, dates[i], '\033[1;32m!\033[0;31m' if actions[i] else ''))
 					else:
 						prcs.append('-%.2f' % (float(price)/prices[0]*100))
 			prcs = '\t'.join(prcs)
