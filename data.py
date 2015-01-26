@@ -24,7 +24,7 @@ parts = {'alco_tabacco': (20 ,'алкоголь/табак'),
 			'water_coke': (18 ,'вода, напитки, соки')}
 
 def dates():
-	root, dirs, files = os.walk('.').next()
+	root, dirs, files = os.walk('data').next()
 	res = []
 	for dir in dirs:
 		if not re.match('^[0-9]{2}\.[0-9]{2}\.[0-9]{2}$', dir):
@@ -34,14 +34,14 @@ def dates():
 	return res
 
 def load_date(date):
-	root, dirs, files = os.walk(date).next()
+	root, dirs, files = os.walk('data/%s' % date).next()
 
 	files = filter(lambda x: x.endswith('.json'), files)
 
 	data = {}
 
 	for fn in files:
-		f = open('%s/%s' % (date, fn), 'r')
+		f = open('data/%s/%s' % (date, fn), 'r')
 		j = json.loads(f.read())
 		f.close()
 

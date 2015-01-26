@@ -68,11 +68,11 @@ def get_prices(key, id, name):
 	date = time.strftime('%y.%m.%d')
 	
 	try:
-		os.mkdir(date)
+		os.mkdir('data/%s' % date)
 	except:
 		pass
 	
-	f = open('%s/%s.json' % (date, key), 'w')
+	f = open('data/%s/%s.json' % (date, key), 'w')
 	text = json.dumps(res)
 	f.write(text)
 	f.close
