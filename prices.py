@@ -2,28 +2,17 @@
 # -*- coding: utf-8 -*-
 
 
-import requests, re, json, time, os
+import requests, re, json, time, os, sys, data
 from lxml import html
 
 
-	#res = {}
-	#trs = re.findall('<tr>.*?</tr>', table)
-	#for tr in trs:
-		#try:
-			#art = int(re.findall('\(.*?\:([0-9]*)\)', tr)[0])
-			#name = re.findall('<a.*?>(.*?)</a>', tr)[0].strip()
-			#price = re.findall('<nobr>(.*?)</nobr>', tr)[0].strip()
-			#price = float(price.split(' ')[0])
-			#presence = re.findall('<div style=\'color:(.*?);', tr)[0].strip() == 'green'
-		#except:
-			#print 'String parsing error!'
-			#return None
-		#res[art] = (name, price, presence)
-	#return res
+reload(sys)
+sys.setdefaultencoding('utf8')
 
 
 def parse_page(url, res):
-	print '.'
+	sys.stdout.write('.')
+	sys.stdout.flush()
 	try:
 		page = html.parse(url)
 		page = page.getroot()
@@ -37,10 +26,8 @@ def parse_page(url, res):
 	
 	for product in products:
 		name =  product.find_class('name')[0].find('a').text
-		#print name
 		art = product.find_class('art')[0].text
 		art = int(re.search('[0-9]+', art).group())
-		#print art
 		
 		price = product.find_class('price-new')
 		action = bool(price)
@@ -52,7 +39,7 @@ def parse_page(url, res):
 		try:
 			price = float(price.text.strip().replace(' ', ''))
 		except:
-			print 'Price error! (%s)', price.text
+			print '\n!!!\nPrice error! (%s)\n!!!\n', price.text
 			return
 
 		presence = bool(product.find_class('quantity yes'))
@@ -67,15 +54,16 @@ def parse_page(url, res):
 			parse_page(pl.values()[0], res)
 			return		
 
-def get_prices(name, path):
-	url = 'http://assorti62.ru/index.php?route=product/category&path=%d&limit=25' % (path)
+def get_prices(key, id, name):
+	url = 'http://assorti62.ru/index.php?route=product/category&path=%d&limit=25' % (id)
 
-	print '%s loading' % (name)
+	print name,
+	sys.stdout.flush()
 
 	res = {}
 	parse_page(url, res)
 	
-	print '\nok'
+	print 'ok'
 
 	date = time.strftime('%y.%m.%d')
 	
@@ -84,31 +72,20 @@ def get_prices(name, path):
 	except:
 		pass
 	
-	f = open('%s/%s.json' % (date, name), 'w')
+	f = open('%s/%s.json' % (date, key), 'w')
 	text = json.dumps(res)
 	f.write(text)
 	f.close
 	
 	return None
-	
 
-get_prices('meat', 25)
-get_prices('milk', 17)
-get_prices('fish', 57)
-get_prices('frozen', 33)
-get_prices('vegetables', 60)
-get_prices('grocery', 59) #Bakaleya
-get_prices('preserves', 169)
-### from 22.08.14
-get_prices('alco_tabacco', 20)
-get_prices('water_coke', 18)
-get_prices('tea', 176)
-get_prices('confection', 183)
-get_prices('bread', 24)
-get_prices('cooking', 34)
-get_prices('children', 62)
+def main():
+	for key, val in data.parts.items():
+		id, name = val
+		get_prices(key, id, name)
 
-
+if __name__ == '__main__':
+	main()
 
 
 
