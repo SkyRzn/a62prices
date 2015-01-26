@@ -34,9 +34,10 @@ def main():
 	flt = ur'^сыр (?!.*плавл|.*президент|.*хохланд|.*копченый|.*сырцееды|.*каймак)' #сыр
 	flt = ur'^сметана' #сметана
 	flt = ur'водка' #водка
-	flt = ur'пиво' #водка
+	flt = ur'пиво' #пиво
+	flt = ur'^хлеб |батон ' #хлеб
 
-	cnt, dec_cnt, inc_cnt, pc_avg, pcs = data.compare(d1, d2)
+	cnt, dec_cnt, inc_cnt, pc_avg, pcs = data.compare(d1, d2, flt)
 
 	pcs.sort()
 
