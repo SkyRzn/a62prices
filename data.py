@@ -8,7 +8,7 @@ import re, json, time, os, sys
 nocolor = ('--nocolor' in sys.argv)
 
 
-parts = {'alco_tabacco': (20 ,'алкоголь/табак'),
+categories = {'alco_tabacco': (20 ,'алкоголь, табак'),
 			'bread': (24 ,'хлеб'),
 			'children': (62 ,'детские товары'),
 			'confection': (183 ,'кондитерские изделия'),
@@ -19,7 +19,7 @@ parts = {'alco_tabacco': (20 ,'алкоголь/табак'),
 			'meat': (25 ,'мясо и мясопродукты'),
 			'milk': (17 ,'молоко и молочные продукты'),
 			'preserves': (169 ,'консервы'),
-			'tea': (176 ,'чай/кофе'),
+			'tea': (176 ,'чай, кофе'),
 			'vegetables': (60 ,'овощи, фрукты, грибы'),
 			'water_coke': (18 ,'вода, напитки, соки')}
 
@@ -40,12 +40,15 @@ def load_date(date):
 
 	data = {}
 
-	for fn in files:
-		f = open('data/%s/%s' % (date, fn), 'r')
+	for cat in categories:
+		f = open('data/%s/%s.json' % (date, cat), 'r')
+		if not f:
+			raise Exception('Category loading error: %s, %s' % (date, cat))
+			continue
 		j = json.loads(f.read())
 		f.close()
 
-		data.update(j)
+		data[cat] = j
 
 	return data
 
@@ -55,10 +58,20 @@ def fix_action(vals):
 		vals = (name, price, presence, False)
 	return vals
 
-def compare(d1, d2, flt = None):
+def compare(sd1, sd2, flt = None, cats = None):
 	cnt = dec_cnt = inc_cnt = 0
 	percent_sum = 0
 	pcs = []
+
+	if not cats:
+		cats = categories.keys()
+
+	d1 = {}
+	d2 = {}
+	for cat in cats:
+		d1.update(sd1[cat])
+		d2.update(sd2[cat])
+
 	for id, v1 in d1.items():
 		try:
 			v2 = d2[id]
@@ -86,7 +99,7 @@ def compare(d1, d2, flt = None):
 		percent = 100.0/float(price1)*float(price2)
 		percent_sum += percent
 
-		pcs.append((percent, name, price1, price2))
+		pcs.append((percent, name, price1, price2, act1, act2))
 
 	percent_avg = 0 if cnt == 0 else percent_sum/float(cnt)
 

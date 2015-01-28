@@ -33,31 +33,59 @@ def main():
 	reload(sys)
 	sys.setdefaultencoding('utf8')
 
+	by_cat = False
+	flt = None
+
+	args = sys.argv[1:]
+	while args:
+		arg = args.pop(0)
+		if arg.startswith('--'):
+			arg = arg[2:]
+			if arg == 'bycat':
+				by_cat = True
+			if arg == 'filter':
+				flt = args.pop(0)
+				flt = filters[flt]
+			else:
+				raise Exception('Unknown arg')
+
 	dates = data.dates()
 
 	d1 = data.load_date(dates[0])
 	d2 = data.load_date(dates[-1])
 
-	#for name, flt in filters.items():
-		#cnt, dec_cnt, inc_cnt, pc_avg, pcs = data.compare(d1, d2, flt)
-		#print '%s - %6.2f%%' % (name, pc_avg)
-	#return
+	if by_cat:
+		for cat, val in data.categories.items():
+			n, name = val
+			cnt, dec_cnt, inc_cnt, pc_avg, pcs = data.compare(d1, d2, flt, [cat])
+			print '%s - %6.2f%%' % (name, pc_avg)
+		return
 
-	cnt, dec_cnt, inc_cnt, pc_avg, pcs = data.compare(d1, d2)
+	if flt == 'all':
+		for name, fl in filters.items():
+			cnt, dec_cnt, inc_cnt, pc_avg, pcs = data.compare(d1, d2, fl)
+			print '%s - %6.2f%%' % (name, pc_avg)
+		return
+
+	cnt, dec_cnt, inc_cnt, pc_avg, pcs = data.compare(d1, d2, flt)
 
 	pcs.sort()
 
-	for percent, name, price1, price2 in pcs:
+	for percent, name, price1, price2, act1, act2 in pcs:
 		two_pr = True
-		if percent < 99.9:
+		if price1 > price2:
 			fmt = '\033[1;32m%-50.50s\t%6.2f%%\033[0m %s'
-		elif percent > 100.1:
+		elif price1 < price2:
 			fmt = '\033[0;31m%-50.50s\t%6.2f%%\033[0m %s'
 		else:
 			fmt = '%-50.50s\t%6.2f%% %s'
 			two_pr = False
 
-		print fmt % (name, percent, '%7.2f -> %7.2f' % (price1, price2))
+		sact = ''
+		if act1 != act2:
+			sact = 'акция (%s)' % ('начало' if act1 else 'конец')
+
+		print fmt % (name, percent, '%7.2f -> %7.2f %s' % (price1, price2, sact))
 
 	print
 	print 'подорожало %d, подешевело %d из %d, среднее: %6.2f%%' % (inc_cnt, dec_cnt, cnt, pc_avg)

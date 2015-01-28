@@ -17,7 +17,7 @@ def parse_page(url, res):
 		page = html.parse(url)
 		page = page.getroot()
 	except:
-		print 'Parsing error!'
+		raise Exception('Parsing error!')
 		return
 
 	products = page.find_class('product-grid')[0].findall('div')
@@ -39,7 +39,7 @@ def parse_page(url, res):
 		try:
 			price = float(price.text.strip().replace(' ', ''))
 		except:
-			print '\n!!!\nPrice error! (%s)\n!!!\n', price.text
+			raise Exception('Price error! (%s)' % price.text)
 			return
 
 		presence = bool(product.find_class('quantity yes'))
@@ -80,7 +80,7 @@ def get_prices(key, id, name):
 	return None
 
 def main():
-	for key, val in data.parts.items():
+	for key, val in data.categories.items():
 		id, name = val
 		get_prices(key, id, name)
 
