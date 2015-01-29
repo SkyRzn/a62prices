@@ -26,6 +26,10 @@ filters = { 'молоко': ur'^молоко(?!.*чудо|.*сгущенное|.
 			'водка': ur'водка',
 			'пиво': ur'пиво',
 			'хлеб': ur'^хлеб |батон ',
+			'лук': ur'^лук',
+			'морковь': ur'^морковь',
+			'капуста': ur'^капуста(?=.*бел)',
+			'яблоки': ur'яблоки',
 			}
 
 
@@ -45,7 +49,7 @@ def main():
 				by_cat = True
 			if arg == 'filter':
 				flt = args.pop(0)
-				flt = filters[flt]
+				flt = filters.get(flt, ur'%s' % flt)
 			else:
 				raise Exception('Unknown arg')
 
