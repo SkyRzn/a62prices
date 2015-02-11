@@ -3,7 +3,7 @@
 
 
 import data
-import sys
+import sys, os
 
 
 def main():
@@ -13,6 +13,8 @@ def main():
 	by_cat = False
 	sort = False
 	stream = sys.stdout
+	ooo = False
+	fn = None
 
 	args = sys.argv[1:]
 	while args:
@@ -23,11 +25,18 @@ def main():
 				by_cat = True
 			elif arg == 'file':
 				fn = args.pop(0)
-				stream = open(fn, 'w')
+				if fn:
+					stream = open(fn, 'w')
 			elif arg == 'sort':
 				sort = True
+			elif arg == 'ooo':
+				ooo = True
 			else:
 				raise Exception('Unknown arg')
+
+	if ooo and not fn:
+		fn = 'dyn.csv'
+		stream = open(fn, 'w')
 
 	dates = data.dates()
 
@@ -64,6 +73,12 @@ def main():
 		else:
 			cnt, dec_cnt, inc_cnt, pc_avg, pcs = data.compare(d1, d2)
 			print >> stream, '%s;%.2f' % (date, pc_avg)
+
+	if fn and stream:
+		stream.close()
+
+	if ooo:
+		os.system('libreoffice --calc %s &' % fn)
 
 if __name__ == '__main__':
 	main()
