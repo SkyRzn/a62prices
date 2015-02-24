@@ -83,8 +83,8 @@ def compare(sd1, sd2, flt = None, cats = None):
 
 		if not (prs1 and prs2):
 			continue
-		#if act1 or act2:
-			#continue
+		if act1 or act2:
+			continue
 
 		if flt:
 			if not re.search(flt, name.lower()):

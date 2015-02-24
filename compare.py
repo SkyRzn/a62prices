@@ -47,7 +47,7 @@ def main():
 			arg = arg[2:]
 			if arg == 'bycat':
 				by_cat = True
-			if arg == 'filter':
+			elif arg == 'filter':
 				flt = args.pop(0)
 				flt = filters.get(flt, ur'%s' % flt)
 			else:
